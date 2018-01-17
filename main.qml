@@ -20,6 +20,8 @@ ApplicationWindow {
     title: 'unik-qml-writer'
     property string tool: ""
     property string urlEditor: 'https://www.blogger.com/'
+    property var wvResult
+    property string uqml: ''
     //property string urlEditor: 'http://nextsigner.blogspot.com.ar/'
 
     onToolChanged: {
@@ -28,6 +30,11 @@ ApplicationWindow {
         }else{
             xQuickCode.state = "hide"
         }
+    }
+    onUqmlChanged: {
+        console.log('Nuevo QML a ejecutar'+uqml)
+        compilarCS(uqml)
+        app.uqml = ''
     }
 
     FontLoader {name: "FontAwesome";source: "qrc:/fontawesome-webfont.ttf";}
@@ -112,18 +119,14 @@ ApplicationWindow {
         }
         onUrlChanged: {
             console.log("Url: "+url)
-        }
+        }        
 
         Shortcut {
             sequence: "Ctrl+Tab"
-            onActivated: {
-                //menuPegar.
-                //console.log("Ejecutando Ctrl+Tab... "+clipboard.getText())
-                clipboard.setText("     ")
-                //console.log("Ejecutando Ctrl+Tab... "+clipboard.getText())
+            onActivated: {                
+                clipboard.setText("     ")                
                 wv.focus = true
-                wv.triggerWebAction(WebEngineView.Paste)
-                //console.log("Ejecutando Ctrl+Tab... 2"+clipboard.getText())
+                wv.triggerWebAction(WebEngineView.Paste)                
             }
         }
         Shortcut {
@@ -135,6 +138,17 @@ ApplicationWindow {
     }
     Menu {
         id: contextMenu
+        MenuItem { id: ccs; text: "Compilar Còdigo Seleccionado"
+            onTriggered:{
+                //wv.triggerWebAction(WebEngineView.Copy)
+                var js='\'\'+window.getSelection()'
+                wv.runJavaScript(js, function(result) {
+                    console.log('[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]'+result);
+                    compilarCS(result)
+                });
+
+            }
+        }        
         MenuItem { text: "Guardar Còdigo"
             onTriggered:{
                 wv.triggerWebAction(WebEngineView.Copy)
@@ -190,9 +204,12 @@ ApplicationWindow {
 
 
             Boton{
+                id: btnRun
                 w:parent.width
                 h: w
                 t: "\uf04b"
+                enabled: (''+wv.url).indexOf('blogger.com') !== -1
+                opacity: enabled ? 1.0 : 0.5
                 onClicking: {
                     if(app.urlEditor==='https://www.blogger.com/'){
                         compilar()
@@ -203,6 +220,16 @@ ApplicationWindow {
                         })
                     }
                 }
+                Timer{
+                    running: true
+                    repeat: true
+                    interval: 500
+                    onTriggered: {
+                        //btnRun.opacity = (''+wv.url).indexOf('blogger.com') !== -1 ? 1.0 : 0.5
+                    }
+
+                }
+
 
             }
             Boton{
@@ -419,8 +446,9 @@ ApplicationWindow {
                        qc NUMERIC
                         )'
         uk.sqlQuery(sql, true)
-        sql = 'DELETE FROM quickcodes'
-        uk.sqlQuery(sql, true)
+        //sql = 'DELETE FROM quickcodes'
+        //uk.sqlQuery(sql, true)
+        cleanBDQC()
         loadQC("")
     }
     Timer{
@@ -434,17 +462,16 @@ ApplicationWindow {
             setStyle()
         }
 
-    }
+    }    
     function setColorTextEditor(){
         wv.runJavaScript('document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'p\').length', function(result) {
-        console.log("Cantindad de lineas: "+result)
+            //console.log("Cantindad de lineas: "+result)
             var js=''
-            for(var i=0;i<result;i++){
-                //js += 'document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'p\')['+i+'].style.fontSize="40px";'
+            for(var i=0;i<result;i++){                
                 js += 'document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'p\')['+i+'].style.color="white";'
             }
             wv.runJavaScript(js, function(result2) {
-            console.log("Result Styles Paragraph: "+result2)
+                //console.log("Result Styles Paragraph: "+result2)
 
             })
 
@@ -452,7 +479,7 @@ ApplicationWindow {
     }
     function setColorDivs(){
         wv.runJavaScript('document.getElementsByTagName(\'div\').length', function(result) {
-        console.log("Cantindad de lineas: "+result)
+            //console.log("Cantindad de lineas: "+result)
             var js='function setColorDiv(d){if(d.className!==\'goog-palette-colorswatch\'){d.style.backgroundColor="#333333";d.style.color="#fff";}};'
             for(var i=0;i<result;i++){
                 js += 'setColorDiv(document.getElementsByTagName(\'div\')['+i+']);'
@@ -462,14 +489,14 @@ ApplicationWindow {
             })
 
         })
-    }
+    }    
     function setStyle(){
         var bgColor = '#000000'
         var fsColor = '#ffffff'
         var js = 'document.getElementsByTagName(\'html\')[0].style.backgroundColor="'+bgColor+'";'
-            js = 'document.getElementsByTagName(\'html\')[0].style.color="'+fsColor+'";'
-            js += 'document.getElementsByTagName(\'body\')[0].style.backgroundColor="'+bgColor+'";'
-            js += 'document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'body\')[0].style.backgroundColor="'+bgColor+'";'
+        js = 'document.getElementsByTagName(\'html\')[0].style.color="'+fsColor+'";'
+        js += 'document.getElementsByTagName(\'body\')[0].style.backgroundColor="'+bgColor+'";'
+        js += 'document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'body\')[0].style.backgroundColor="'+bgColor+'";'
         wv.runJavaScript(js, function(result) {
             //console.log("Result Style: "+result)
 
@@ -477,19 +504,65 @@ ApplicationWindow {
 
     }
 
+    function compilarCS(res){
+        console.log('Compilando código seleccionado...')
+        var js = ''
+        var d=''+res;
+        console.log('--------->'+d)
+        uk.setFile('H:/cdd.txt', d,true)        
+        var r = new Date(Date.now())
+        var fileName = ''+unik.getPath(2)+'/'+r.getTime()+'/main.qml'
+        console.log('Saving: '+fileName)
+        var m1 = fileName.split('/')
+        var folder = fileName.replace('/'+m1[m1.length-1], '')        
+        uk.mkdir(folder)
+        uk.setFile(fileName,d,true)
+        var cl = '-folder '+folder
+
+        var appPath
+        if(Qt.platform.os==='windows'){
+            appPath = '"'+uk.getPath(1)+'/'+uk.getPath(0)+'"'
+            uk.setFile('H:/cl.txt',cl,true)
+        }
+        if(Qt.platform.os==='linux'){            
+            appPath = '"'+appExec+'"'
+        }
+        uk.setFile('H:/cl.txt', appPath+' '+cl,true)        
+        console.log('Running: '+appPath+' '+cl)
+        if(uk.fileExist(fileName)){
+            uk.run(appPath+' '+cl, true)
+        }else{
+
+        }
+    }
     function compilar(){
-        var js = 'function getInnerHtml(){'
-            js = 'var c = document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'body\')[0].innerHTML; return c;}'
-            js = 'getInnerHtml();'
-        wv.runJavaScript(js, function(result) {
-            var c1 = ''+result;
-            var c2 = c1.replace(/<p>/g, '')
-            var c3 = c2.replace(/<\/p>/g, '\n')
-            var c4 = c3.replace(/&nbsp;/g, ' ')
-            var d=''+c4
-            console.log('--------->'+d)
-            var m0=d.split('\n')
-            var l1 = ''+m0[0]
+        console.log('Compilando...')
+        var js = ''        
+        js += 'document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'body\')[0].innerHTML;'        
+        wv.runJavaScript(js, function(result) {            
+            var tagPre1 = '<'+'/pre>\n'
+            var c1 = ''+result+'<br />'
+            console.log('QML Trim: '+c1.replace(/<(?:.|\n)*?>/gm, ''))
+            var c2 = c1.replace(/<[\/p]>/g, '')//encuentra inicio parrafo
+            var c3 = c2.replace(/<\/[p]>/g, '\n')//encuentra fin parrafo
+            var c4 = c3.replace(/<\/(pre)>/g, tagPre1)
+            var c5 = c4.replace(/<[\/b][\/r] \/>/g, '\n')//encuentra < br / >
+            var c6 = c5.replace(/<[\/b][\/r]>/g, '\n')//encuentra < br >
+            var c7 = c6.replace(/(&nbsp);/g, ' ')//encuentra espacio html
+            var c8 = c7.replace(/<(?:.|\n)*?>/gm, '')
+            var c9 = c8.replace("p, li { white-space: pre-wrap; }", '')
+            app.wvResult = c9
+            console.log('QML: '+app.wvResult)
+            var m0=c9.split('\n')
+            var l1 = ''
+            for(var i=0;i<m0.length;i++){
+                var l = ''+m0[i]
+                if(l.substring(0,2)==='//'){
+                    l1 = ''+m0[i]
+                    break;
+                }
+            }
+
             var fileName = l1.substring(2,l1.length)
             console.log('Saving: '+fileName)
             var m1 = fileName.split('/')
@@ -498,7 +571,7 @@ ApplicationWindow {
             var l2 = ''+m0[1]
             //var cl = l2.substring(2,l2.length)
             uk.mkdir(folder)
-            uk.setFile(fileName,d,true)
+            uk.setFile(fileName,app.wvResult,true)
             var cl = '-folder '+folder
 
             var appPath
@@ -506,35 +579,17 @@ ApplicationWindow {
                 appPath = '"'+uk.getPath(1)+'/'+uk.getPath(0)+'"'
                 uk.setFile('H:/cl.txt',cl,true)
             }
-            if(Qt.platform.os==='linux'){
-                //appPath = '"'+uk.getPath(1)+'/'+uk.getPath(0)+'"'
-                //appPath = '"'+uk.getPath(1)+'/'+uk.getPath(0)+'"'
+            if(Qt.platform.os==='linux'){                
                 appPath = '"'+appExec+'"'
-            }
-            //uk.setFile('H:/cl.txt', appPath+' '+cl,true)
-            //uk.setFile('/home/nextsigner/Escritorio/fn.txt', fileName,true)
-            //uk.setFile('/home/nextsigner/Escritorio/cl.txt', appPath+' '+cl,true)
+            }           
             console.log('Running: '+appPath+' '+cl)
-            if(uk.fileExist(fileName)){
+            if(unik.fileExist(fileName)){
                 uk.run(appPath+' '+cl, true)
             }else{
 
             }
         })
-
-    }
-
-    function sinSalto(t){
-        var c = ''+t
-        var c2 = c.replace(/\\n/g, '\x0A')
-        return c2
-    }
-    function conSalto(t){
-        var c = ''+t
-        var c2 = c.replace(/\\x0A/g, '\n')
-        return c2
-    }
-
+    }   
     function getVG(nom, valxdef){
         var sql = 'select val from varglob where nom=\''+nom+'\''
         var res = uk.getJsonSql('varglob', sql, 'sqlite', true)
@@ -547,20 +602,42 @@ ApplicationWindow {
         }
         return ''
     }
+    function cleanBDQC(){
+        var sql = 'select id from quickcodes;'
+        var c = ''+uk.getJsonSql('quickcodes', sql, 'sqlite', true)
+        var j = JSON.parse(c)
+        for(var i=0;i<Object.keys(j).length;i++){
+            sql = 'select * from quickcodes where id=\''+j['row'+i].col0+'\';'
+            var res = ''+uk.getJsonSql('quickcodes', sql, 'sqlite', true)
+            var res2 = res.replace(/\r\n/g, '<br>')
+            var res3 = res2.replace(/\t/g, '&#09;')
+            var res4 = res3.replace(/\n/g, '<br>')
+            var a
+            try {
+              a = JSON.parse(res4);
+              console.log('QC id: '+j['row'+i].col0+' pass...')
+            } catch (e) {
+                sql = 'delete from quickcodes where id='+j['row'+i].c0+';'
+                unik.sqlQuery(sql, true)
+                console.log('QC id: '+j['row'+i].col0+' deleted...')
+            }
+
+        }
+    }
     function loadQC(s){
         lmQC.clear()
         var sql = 'select * from quickcodes where nom like \'%'+s+'%\' or qc like \'%'+s+'%\''
         var res = ''+uk.getJsonSql('quickcodes', sql, 'sqlite', true)
-        var res2 = res.replace(/\r\n/g, '<br />')
+        var res2 = res.replace(/\r\n/g, '<br>')
         var res3 = res2.replace(/\t/g, '&#09;')
-        var res4 = res3.replace(/\n/g, '<br />')
+        var res4 = res3.replace(/\n/g, '<br>')
 
         var json = JSON.parse(res4)
         for(var i=0; i < Object.keys(json).length; i++){
             var item = Object.keys(json)[i]
             var code = ''+json['row'+i].col2
             var rcode = ''+json['row'+i].col2
-            var rcode1 = rcode.replace(/<br \/>/g, '\n')
+            var rcode1 = rcode.replace(/<br>/g, '\n')
             var rcode2 = rcode1.replace(/&#09;/g, '\t')
             var code1 = code.replace(/<br \/>/g, '<br>')
             var code2 = code1.replace(/&#09;/g, '--')
