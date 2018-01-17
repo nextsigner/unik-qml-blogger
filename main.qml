@@ -2,7 +2,7 @@
 Jaunary 2018
 This file is created by nextsigner
 This code is used for the unik qml engine system too created by nextsigner.
-Please read the Readme.md from https://github.com/nextsigner/unik-qml-writer.git
+Please read the Readme.md from https://github.com/nextsigner/unik-qml-blogger.git
 Contact
     email: nextsigner@gmail.com
     whatsapps: +541138024370
@@ -18,14 +18,10 @@ ApplicationWindow {
     width: 1400
     height: 600
     visibility:"Maximized"
-    title: 'unik-qml-writer'
+    title: 'unik-qml-blogger'
     property string tool: ""
     property string urlEditor: 'https://www.blogger.com/'
     property var wvResult
-    //property var bgcEditor
-    //property var tcEditor
-    //property string urlEditor: 'http://nextsigner.blogspot.com.ar/'
-
     onToolChanged: {
         if(app.tool === "quickcode"){
             xQuickCode.state = "show"
