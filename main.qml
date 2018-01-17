@@ -9,6 +9,7 @@ Contact
 */
 import QtQuick 2.7
 import QtQuick.Controls 2.0
+import Qt.labs.settings 1.0
 import QtWebEngine 1.4
 import uk 1.0
 ApplicationWindow {
@@ -21,7 +22,8 @@ ApplicationWindow {
     property string tool: ""
     property string urlEditor: 'https://www.blogger.com/'
     property var wvResult
-    property string uqml: ''
+    //property var bgcEditor
+    //property var tcEditor
     //property string urlEditor: 'http://nextsigner.blogspot.com.ar/'
 
     onToolChanged: {
@@ -31,12 +33,12 @@ ApplicationWindow {
             xQuickCode.state = "hide"
         }
     }
-    onUqmlChanged: {
-        console.log('Nuevo QML a ejecutar'+uqml)
-        compilarCS(uqml)
-        app.uqml = ''
+    Settings{
+        id: appSettings
+        category: 'Configuration'
+        property string bgColorEditor: 'black'
+        property string txtColorEditor: 'white'
     }
-
     FontLoader {name: "FontAwesome";source: "qrc:/fontawesome-webfont.ttf";}
     UK{
         id:uk
@@ -45,13 +47,8 @@ ApplicationWindow {
         target: unik
         onUkStdChanged: {
             console.log('Writer dice: '+unik.ukStd)
-        }
+       }
     }
-    function setClipBoardText(){
-        var t = 'dddd'
-        clipboard.setText(t)
-    }
-
     WebEngineView{
         id: wv
         width: app.width-xTools.width
@@ -242,6 +239,34 @@ ApplicationWindow {
                 }
             }
             Boton{
+                id:btnBgColorEditor
+                objectName: 'btnBGCTE'
+                w:parent.width
+                h: w
+                t: 'E'
+                b: appSettings.bgColorEditor
+                c: appSettings.txtColorEditor
+                onClicking: {
+                    colorPicker.obj = btnBgColorEditor
+                    //colorPicker.colorSeted = appSettings.bgColorEditor
+                    colorPicker.visible = true
+                }
+            }
+            Boton{
+                id:btnTextColorEditor
+                objectName: 'btnTXTCTE'
+                w:parent.width
+                h: w
+                t: 'T'
+                b: appSettings.bgColorEditor
+                c: appSettings.txtColorEditor
+                onClicking: {
+                    colorPicker.obj = btnTextColorEditor
+                    //colorPicker.colorSeted = appSettings.txtColorEditor
+                    colorPicker.visible = true
+                }
+            }
+            Boton{
                 w:parent.width
                 h: w
                 t: "\uf121"
@@ -423,6 +448,24 @@ ApplicationWindow {
         }
     }
 
+    ColorPicker{
+        id:colorPicker;
+        visible: false;
+        property var obj
+        onCurrentColorChanged: {
+            if(obj.objectName==='btnBGCTE'){appSettings.bgColorEditor=currentColor}
+            if(obj.objectName==='btnTXTCTE'){appSettings.txtColorEditor=currentColor}
+        }
+        onRejected: {
+            if(obj.objectName==='btnBGCTE'){appSettings.bgColorEditor=prevcolor}
+            if(obj.objectName==='btnTXTCTE'){appSettings.txtColorEditor=prevcolor}
+        }
+        onAccepted: {
+            if(obj.objectName==='btnBGCTE'){appSettings.bgColorEditor=color}
+            if(obj.objectName==='btnTXTCTE'){appSettings.txtColorEditor=color}
+        }
+    }
+
     GuardarCodigo{
         id: guardarCodigo
         visible:false
@@ -435,6 +478,8 @@ ApplicationWindow {
         }
     }
     Component.onCompleted:  {
+        //bgcEditor = appSettings.bgColorEditor
+
         var sf = ((''+appsDir).replace('file:///', ''))+'/'+app.title+'.sqlite'
         var initSqlite = uk.sqliteInit(sf, true)
         var sql
@@ -455,10 +500,11 @@ ApplicationWindow {
         id: ts
         running: true
         repeat: true
-        interval: 1000
+        interval: 250
         onTriggered: {
             setColorTextEditor()
             setColorDivs()
+            setColorSpans()
             setStyle()
         }
 
@@ -468,7 +514,7 @@ ApplicationWindow {
             //console.log("Cantindad de lineas: "+result)
             var js=''
             for(var i=0;i<result;i++){                
-                js += 'document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'p\')['+i+'].style.color="white";'
+                js += 'document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'p\')['+i+'].style.color="'+txtcEditor+'";'
             }
             wv.runJavaScript(js, function(result2) {
                 //console.log("Result Styles Paragraph: "+result2)
@@ -489,14 +535,30 @@ ApplicationWindow {
             })
 
         })
-    }    
+    }
+    function setColorSpans(){
+        wv.runJavaScript('document.getElementsByTagName(\'span\').length', function(result) {
+            //console.log("Cantindad de lineas: "+result)
+            var js='function setColorDiv(d){if(d.className!==\'goog-palette-colorswatch\'){d.style.backgroundColor="#333333";d.style.color="#fff";}};'
+            for(var i=0;i<result;i++){
+                js += 'setColorDiv(document.getElementsByTagName(\'span\')['+i+']);'
+            }
+            wv.runJavaScript(js, function(result2) {
+                //console.log("Result Styles Divs: "+result2)
+            })
+
+        })
+    }
     function setStyle(){
+        var bgColorTextAreaEditor = appSettings.bgColorEditor
+        var txtColorTextAreaEditor = appSettings.txtColorEditor
         var bgColor = '#000000'
         var fsColor = '#ffffff'
         var js = 'document.getElementsByTagName(\'html\')[0].style.backgroundColor="'+bgColor+'";'
         js = 'document.getElementsByTagName(\'html\')[0].style.color="'+fsColor+'";'
         js += 'document.getElementsByTagName(\'body\')[0].style.backgroundColor="'+bgColor+'";'
-        js += 'document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'body\')[0].style.backgroundColor="'+bgColor+'";'
+        js += 'document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'body\')[0].style.backgroundColor="'+bgColorTextAreaEditor+'";'
+        js += 'document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'body\')[0].style.color="'+txtColorTextAreaEditor+'";'
         wv.runJavaScript(js, function(result) {
             //console.log("Result Style: "+result)
 

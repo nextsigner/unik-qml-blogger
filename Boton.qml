@@ -6,6 +6,7 @@ Item {
     property int h: 10
     property alias t: txt.text
     property alias c: txt.color
+    property alias b: rect.color
     width: w
     height: h
     signal clicking
