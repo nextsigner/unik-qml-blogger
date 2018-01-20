@@ -43,6 +43,7 @@ ApplicationWindow {
         property string txtColorEditor: 'white'
         property int pyLineRH1: 0
         property bool logVisible: false
+        property string currentFolder
         onLogVisibleChanged: {
             if(logVisible){
 
@@ -64,6 +65,7 @@ ApplicationWindow {
             border.width: 1
             border.color: "white"
             Column{
+                id: colTools
                 width: parent.width
                 spacing:  width*0.5
                 anchors.verticalCenter: parent.verticalCenter
@@ -168,6 +170,16 @@ ApplicationWindow {
                     t: "\uf121"
                     onClicking: {
                         app.tool = app.tool === "quickcode" ? "" : "quickcode"
+                    }
+                }
+                Boton{
+                    id: btnCurrentFolder
+                    w:parent.width*0.9
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    h: w
+                    t: "\uf07b"
+                    onClicking: {
+                        app.tool = app.tool === "currentFolder" ? "" : "currentFolder"
                     }
                 }
                 Boton{
@@ -321,7 +333,7 @@ ApplicationWindow {
                         clipboard.setText(wv.linkContextRequested)
                     }
                 }
-                MenuItem { id: ccs; text: "Compilar Còdigo Seleccionado"
+                MenuItem { id: ccs; text: "Run Mode 1"
                     enabled: visible
                     height: visible ? undefined : 0
                     visible: false
@@ -330,7 +342,33 @@ ApplicationWindow {
                         var js='\'\'+window.getSelection()'
                         wv.runJavaScript(js, function(result) {
                             logView.log(result)
-                            compilarCS(result)
+                            compilarCS(result, 1)
+                        });
+                    }
+                }
+                MenuItem { id: ccs2; text: "Run Mode 2"
+                    enabled: visible
+                    height: visible ? undefined : 0
+                    visible: false
+                    onTriggered:{
+                        //wv.triggerWebAction(WebEngineView.Copy)
+                        var js='\'\'+window.getSelection()'
+                        wv.runJavaScript(js, function(result) {
+                            logView.log(result)
+                            compilarCS(result, 2)
+                        });
+                    }
+                }
+                MenuItem { id: ccs3; text: "Run Mode 3"
+                    enabled: visible
+                    height: visible ? undefined : 0
+                    visible: false
+                    onTriggered:{
+                        //wv.triggerWebAction(WebEngineView.Copy)
+                        var js='\'\'+window.getSelection()'
+                        wv.runJavaScript(js, function(result) {
+                            logView.log(result)
+                            compilarCS(result, 3)
                         });
                     }
                 }
@@ -376,6 +414,59 @@ ApplicationWindow {
             }
         }
 
+    }
+
+    Rectangle{
+        id: xCurrentFolder
+        width: tiCurrentFolder.width*1.05
+        height: xTools.width
+        color: "#333"
+        border.color: "white"
+        radius: height*0.25
+        y: btnCurrentFolder.y+(colTools.y)
+        TextInput{
+            id: tiCurrentFolder
+            width: contentWidth<300 ? 300 : contentWidth
+            height: parent.height*0.9
+            anchors.centerIn: parent
+            font.pixelSize: parent.height*0.8
+            color: 'white'
+            onTextChanged: {
+                if(text!==''&&text!==appSettings.currentFolder){
+                    appSettings.currentFolder = text
+                }
+            }
+        }
+        state: app.tool === "currentFolder" ? "show" : "hide"
+        states:  [
+            State {
+                name: "hide"
+                PropertyChanges {
+                    target: xCurrentFolder
+                    x: 0-xCurrentFolder.width
+                }
+            },
+            State {
+                name: "show"
+                PropertyChanges {
+                    target: xCurrentFolder
+                    x: 0+xTools.width
+                }
+            }
+
+        ]
+        transitions: [
+            Transition {
+                from: "hide"
+                to: "show"
+                NumberAnimation { properties: "x"; easing.type: Easing.InOutQuad; duration: 250 }
+            },
+            Transition {
+                from: "show"
+                to: "hide"
+                NumberAnimation { properties: "x"; easing.type: Easing.InOutQuad; duration: 250 }
+            }
+        ]
     }
     Rectangle{
         id: xQuickCode
@@ -573,6 +664,12 @@ ApplicationWindow {
         if(lineRH.y===0){
             appSettings.pyLineRH1 = app.height*0.7
         }
+        if(appSettings.currentFolder===undefined||appSettings.currentFolder===''){
+            var cf = ''+unikDocs+'/unik-qml-blogger'
+            tiCurrentFolder.text = cf
+        }else{
+            tiCurrentFolder.text = appSettings.currentFolder
+        }
 
         var sf = ((''+appsDir).replace('file:///', ''))+'/'+app.title+'.sqlite'
         var initSqlite = unik.sqliteInit(sf, true)
@@ -694,24 +791,97 @@ ApplicationWindow {
                 if(s.indexOf('import') !== -1 && s.indexOf('ApplicationWindow') !== -1){
                     ccs.visible = s!==''
                 }
+                ccs2.visible = s!==''
+                ccs3.visible = s!==''
             });
         }
     }
-    function compilarCS(res){
+    function compilarCS(res, modo){
         logView.log('Compilando código seleccionado...')
         var js = ''
         var d=''+res;
-        logView.log('--------->'+d)
-        unik.setFile('H:/cdd.txt', d,true)
-        var r = new Date(Date.now())
-        var fileName = ''+unik.getPath(2)+'/'+r.getTime()+'/main.qml'
-        logView.log('Saving: '+fileName)
-        var m1 = fileName.split('/')
-        var folder = fileName.replace('/'+m1[m1.length-1], '')
-        unik.mkdir(folder)
-        unik.setFile(fileName,d,true)
-        var cl = '-folder '+folder
+        logView.log('Còdigo: '+d)
 
+        var r = new Date(Date.now())
+        var fileName
+        var m1
+        var folder
+        var cl
+        if(modo===1){
+            fileName = ''+unik.getPath(2)+'/'+r.getTime()+'/main.qml'
+            logView.log('Saving: '+fileName)
+            m1 = fileName.split('/')
+            folder = fileName.replace('/'+m1[m1.length-1], '')
+            unik.mkdir(folder)
+            unik.setFile(fileName,d,true)
+            cl = '-folder '+folder+' -debug'
+        }
+        if(modo===2){
+            var m0=d.split('\n')
+            var l1 = ''
+            for(var i=0;i<m0.length;i++){
+                var l = ''+m0[i]
+                if(l.substring(0,2)==='//'){
+                    l1 = ''+m0[i]
+                    break;
+                }
+            }
+            fileName = tiCurrentFolder.text+'/'+l1.substring(2,l1.length)
+            logView.log('Saving with filename: ['+fileName+']')
+            m1 = fileName.split('/')
+            folder = fileName.replace('/'+m1[m1.length-1], '')
+            var l2 = ''+m0[1]
+            //var cl = l2.substring(2,l2.length)
+            unik.mkdir(folder)
+            unik.setFile(fileName,app.wvResult,true)
+            if(!unik.fileExist(fileName)){
+                logView.log('Error! Not found a filename valid location or name: ['+fileName+']')
+                logView.log('Compilation ir aborted.')
+                return
+            }
+            cl = '-folder '+folder+' -debug'
+        }
+        if(modo===3){
+            fileName = ''+unik.getPath(2)+'/'+r.getTime()+'/main.qml'
+            logView.log('Saving: '+fileName)
+            m1 = fileName.split('/')
+            folder = fileName.replace('/'+m1[m1.length-1], '')
+            unik.mkdir(folder)
+            var fullcode = ''
+            fullcode += 'import QtQuick 2.7\n'
+            fullcode += 'import QtQuick.Controls 2.0\n'
+            fullcode += 'import QtQuick.Layouts 1.3\n'
+            fullcode += 'import QtQuick.Window 2.0\n'
+            fullcode += 'import QtQuick.Dialogs 1.2\n'
+            fullcode += 'import QtQuick.LocalStorage 2.0\n'
+            fullcode += 'import QtQuick.Particles 2.0\n'
+            fullcode += 'import QtQuick.Window 2.0\n'
+            fullcode += 'import QtQuick.XmlListModel 2.0\n'
+            fullcode += 'import QtQuick.Controls.Styles 1.4\n'
+            fullcode += 'import QtMultimedia 5.9\n'
+            fullcode += 'import QtWebView 1.1\n'
+            fullcode += 'import uk 1.0\n'
+            fullcode += 'ApplicationWindow {\n'
+            fullcode +=     'id: app\n'
+            fullcode +=     'visible: true\n'
+            if( d.indexOf('flags:') !== -1&&d.indexOf('flags=') !== -1&&d.indexOf('flags =') !== -1){
+                fullcode +=     'flags: Qt.Window | Qt.FramelessWindowHint\n'
+            }
+            fullcode += '   property int fs: app.width*0.025\n'
+            fullcode += '   UK{id:uk}\n'
+            fullcode += '   FontLoader {name: "FontAwesome";source: "qrc:/fontawesome-webfont.ttf";}\n'
+            fullcode += '\n'+d+'\n'
+            fullcode +='   Item{\n'
+            fullcode +='        Component.onCompleted:{\n'
+            fullcode +='            if(app.width<=0){app.width = Screen.desktopAvailableWidth;}\n'
+            fullcode +='            if(app.height<=0){app.height = Screen.desktopAvailableHeight;}\n'
+            fullcode +='        }\n'
+            fullcode +='    }\n'
+            fullcode +='}\n'
+            unik.setFile(fileName,fullcode,true)
+            logView.log('Full code: '+fullcode)
+            cl = '-folder '+folder+' -debug'
+        }
         var appPath
         if(Qt.platform.os==='windows'){
             appPath = '"'+unik.getPath(1)+'/'+unik.getPath(0)+'"'
@@ -720,7 +890,6 @@ ApplicationWindow {
         if(Qt.platform.os==='linux'){
             appPath = '"'+appExec+'"'
         }
-        unik.setFile('H:/cl.txt', appPath+' '+cl,true)
         logView.log('Running: '+appPath+' '+cl)
         if(unik.fileExist(fileName)){
             unik.run(appPath+' '+cl, true)
@@ -756,7 +925,7 @@ ApplicationWindow {
                 }
             }
 
-            var fileName = l1.substring(2,l1.length)
+            var fileName = tiCurrentFolder.text+'/'+l1.substring(2,l1.length)
 
             logView.log('Saving with filename: ['+fileName+']')
             var m1 = fileName.split('/')
@@ -772,12 +941,7 @@ ApplicationWindow {
                 return
             }
             var cl = '-folder '+folder+' -debug'
-
             var appPath=''
-            /*if(Qt.platform.os==='windows'){
-                            //appPath += 'cmd '
-                            //unik.setFile('H:/cl.txt',cl,true)
-             }*/
             if(Qt.platform.os==='windows'){
                 appPath = '"'+unik.getPath(1)+'/'+unik.getPath(0)+'"'
                 unik.setFile('H:/cl.txt',cl,true)
