@@ -17,6 +17,7 @@ Item {
         anchors.centerIn: raiz
         radius: raiz.h*0.05
         border.width: 1
+        border.color: txt.color
         ParallelAnimation{
                 id: an
                 running: false
