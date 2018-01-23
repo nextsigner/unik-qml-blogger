@@ -833,7 +833,7 @@ ApplicationWindow {
             var l2 = ''+m0[1]
             //var cl = l2.substring(2,l2.length)
             unik.mkdir(folder)
-            unik.setFile(fileName,app.wvResult,true)
+            unik.setFile(fileName,d,true)
             if(!unik.fileExist(fileName)){
                 logView.log('Error! Not found a filename valid location or name: ['+fileName+']')
                 logView.log('Compilation ir aborted.')
@@ -883,9 +883,11 @@ ApplicationWindow {
             cl = '-folder '+folder+' -debug'
         }
         var appPath
+        if(Qt.platform.os==='osx'){
+            appPath = '"'+unik.getPath(1)+'/'+unik.getPath(0)+'"'
+        }
         if(Qt.platform.os==='windows'){
             appPath = '"'+unik.getPath(1)+'/'+unik.getPath(0)+'"'
-            unik.setFile('H:/cl.txt',cl,true)
         }
         if(Qt.platform.os==='linux'){
             appPath = '"'+appExec+'"'
@@ -942,9 +944,11 @@ ApplicationWindow {
             }
             var cl = '-folder '+folder+' -debug'
             var appPath=''
+            if(Qt.platform.os==='osx'){
+                appPath = '"'+unik.getPath(1)+'/'+unik.getPath(0)+'"'
+            }
             if(Qt.platform.os==='windows'){
                 appPath = '"'+unik.getPath(1)+'/'+unik.getPath(0)+'"'
-                unik.setFile('H:/cl.txt',cl,true)
             }
             if(Qt.platform.os==='linux'){
                 appPath = '"'+appExec+'"'
@@ -954,8 +958,6 @@ ApplicationWindow {
             logView.log('Running: '+appPath+' '+cl)
             if(unik.fileExist(fileName)){
                 unik.run(appPath+' '+cl)
-                unik.setFile('H:/cl.txt',appPath,true)
-                //unik.run(appPath)
             }else{
 
             }
