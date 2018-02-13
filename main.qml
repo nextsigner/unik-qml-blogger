@@ -27,7 +27,7 @@ ApplicationWindow {
     property color c4: "black"
     property color c5: "#333333"
     property string tool: ""
-    property string urlEditor: 'https://www.blogger.com/'
+    property string urlEditor: 'http://nsdocs.blogspot.com.ar/search?q=qml+unik'
     property var wvResult
     onToolChanged: {
         if(app.tool === "quickcode"){
@@ -110,6 +110,16 @@ ApplicationWindow {
                     onClicking: {
                         wv.url = 'https://blogger.com'
 
+                    }
+                }
+                Boton{
+                    id:btnSearch2
+                    w:parent.width*0.9
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    h: w
+                    t: "\uf002"
+                    onClicking: {
+                        app.tool = app.tool === "search" ? "" : "search"
                     }
                 }
                 Boton{
@@ -211,8 +221,7 @@ ApplicationWindow {
             WebEngineView{
                 id: wv
                 width: parent.width-xTools.width
-                height: lineRH.y
-                anchors.left: xTools.right
+                height: lineRH.y                
                 url: app.urlEditor
                 profile: defaultProfile
                 focus: true
@@ -468,6 +477,81 @@ ApplicationWindow {
             }
         ]
     }
+
+    Rectangle{
+        id: xTiSearch
+        width: tiSearch2.width*1.05
+        height: xTools.width
+        color: "#333"
+        border.color: "white"
+        radius: height*0.25
+        y: btnSearch2.y+(colTools.y)
+        onXChanged: {
+            if(x===xTools.width){
+                timerTiSearch.start()
+            }
+        }
+        Timer{
+            id:timerTiSearch
+            running: false
+            repeat: false
+            interval: 5000
+            onTriggered: {
+                app.tool = ''
+            }
+        }
+        TextInput{
+            id: tiSearch2
+            width: contentWidth<300 ? 300 : contentWidth
+            height: parent.height*0.9
+            anchors.centerIn: parent
+            font.pixelSize: parent.height*0.65
+            color: text==='search' ? '#ccc' : 'white'
+            text: 'search'
+            Keys.onReturnPressed: {
+                 wv.url = 'http://nsdocs.blogspot.com.ar/search?q='+text.replace(/ /g,'+')
+            }
+            onFocusChanged: {
+                if(text==='search'){
+                    tiSearch.selectAll()
+                }
+            }
+            onTextChanged: {
+                timerTiSearch.restart()
+            }
+        }
+        state: app.tool === "search" ? "show" : "hide"
+        states:  [
+            State {
+                name: "hide"
+                PropertyChanges {
+                    target: xTiSearch
+                    x: 0-xTiSearch.width
+                }
+            },
+            State {
+                name: "show"
+                PropertyChanges {
+                    target: xTiSearch
+                    x: 0+xTools.width
+                }
+            }
+
+        ]
+        transitions: [
+            Transition {
+                from: "hide"
+                to: "show"
+                NumberAnimation { properties: "x"; easing.type: Easing.InOutQuad; duration: 250 }
+            },
+            Transition {
+                from: "show"
+                to: "hide"
+                NumberAnimation { properties: "x"; easing.type: Easing.InOutQuad; duration: 250 }
+            }
+        ]
+    }
+
     Rectangle{
         id: xQuickCode
         width: app.width*0.2
@@ -661,6 +745,7 @@ ApplicationWindow {
         }
     }
     Component.onCompleted:  {
+        unik.debugLog = true
         if(lineRH.y===0){
             appSettings.pyLineRH1 = app.height*0.7
         }
@@ -682,9 +767,6 @@ ApplicationWindow {
                        qc NUMERIC
                         )'
         unik.sqlQuery(sql, true)
-        //sql = 'DELETE FROM quickcodes'
-        //unik.sqlQuery(sql, true)
-        cleanBDQC()
         loadQC("")
     }
     Timer{
@@ -933,8 +1015,7 @@ ApplicationWindow {
             var m1 = fileName.split('/')
 
             var folder = fileName.replace('/'+m1[m1.length-1], '')
-            var l2 = ''+m0[1]
-            //var cl = l2.substring(2,l2.length)
+            var l2 = ''+m0[1]            
             unik.mkdir(folder)
             unik.setFile(fileName,app.wvResult,true)
             if(!unik.fileExist(fileName)){
@@ -952,9 +1033,7 @@ ApplicationWindow {
             }
             if(Qt.platform.os==='linux'){
                 appPath = '"'+appExec+'"'
-            }
-            //appPath += '"'+appExec+'"'
-            ///appPath += 'notepad.exe'
+            }            
             logView.log('Running: '+appPath+' '+cl)
             if(unik.fileExist(fileName)){
                 unik.run(appPath+' '+cl)
@@ -963,58 +1042,18 @@ ApplicationWindow {
             }
         })
     }
-    function getVG(nom, valxdef){
-        var sql = 'select val from varglob where nom=\''+nom+'\''
-        var res = unik.getJsonSql('varglob', sql, 'sqlite', true)
-        var json = JSON.parse(res)
-        if(json['row0']!==undefined){
-            return json['row0'].col0
-        }else{
-            sql = 'INSERT INTO varglob(id, nom, val)VALUES(NULL, \''+nom+'\', \''+valxdef+'\')'
-            unik.sqlQuery(sql, true)
-        }
-        return ''
-    }
-    function cleanBDQC(){
-        var sql = 'select id from quickcodes;'
-        var c = ''+unik.getJsonSql('quickcodes', sql, 'sqlite', true)
-        var j = JSON.parse(c)
-        for(var i=0;i<Object.keys(j).length;i++){
-            sql = 'select * from quickcodes where id=\''+j['row'+i].col0+'\';'
-            var res = ''+unik.getJsonSql('quickcodes', sql, 'sqlite', true)
-            var res2 = res.replace(/\r\n/g, '<br>')
-            var res3 = res2.replace(/\t/g, '&#09;')
-            var res4 = res3.replace(/\n/g, '<br>')
-            var a
-            try {
-                a = JSON.parse(res4);
-                logView.log('QC id: '+j['row'+i].col0+' pass...')
-            } catch (e) {
-                sql = 'delete from quickcodes where id='+j['row'+i].c0+';'
-                unik.sqlQuery(sql, true)
-                logView.log('QC id: '+j['row'+i].col0+' deleted...')
-            }
-
-        }
-    }
     function loadQC(s){
         lmQC.clear()
         var sql = 'select * from quickcodes where nom like \'%'+s+'%\' or qc like \'%'+s+'%\''
-        var res = ''+unik.getJsonSql('quickcodes', sql, 'sqlite', true)
-        var res2 = res.replace(/\r\n/g, '<br>')
-        var res3 = res2.replace(/\t/g, '&#09;')
-        var res4 = res3.replace(/\n/g, '<br>')
-
-        var json = JSON.parse(res4)
-        for(var i=0; i < Object.keys(json).length; i++){
-            var item = Object.keys(json)[i]
-            var code = ''+json['row'+i].col2
-            var rcode = ''+json['row'+i].col2
+        var rows = unik.getSqlData('quickcodes', sql, 'sqlite')
+        for(var i=0; i < rows.length; i++){
+            var code = ''+rows[i].col[2]
+            var rcode = ''+rows[i].col[2]
             var rcode1 = rcode.replace(/<br>/g, '\n')
             var rcode2 = rcode1.replace(/&#09;/g, '\t')
             var code1 = code.replace(/<br \/>/g, '<br>')
             var code2 = code1.replace(/&#09;/g, '--')
-            lmQC.append(lmQC.add(json['row'+i].col0, json['row'+i].col1, code2, rcode2))
+            lmQC.append(lmQC.add(rows[i].col[0], rows[i].col[1], code2, rcode2))
         }
     }
 }

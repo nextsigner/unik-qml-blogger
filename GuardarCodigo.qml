@@ -25,7 +25,7 @@ Rectangle {
         height: raiz.height*0.98
         anchors.centerIn: raiz
         Column{
-            anchors.centerIn: raiz
+            anchors.centerIn: parent
             spacing: raiz.width*0.05
             Text {
                 id: l1
@@ -47,6 +47,10 @@ Rectangle {
                      anchors.centerIn: parent
                     font.pixelSize: raiz.width*0.05
                     focus: true
+                    Keys.onReturnPressed: {
+                        guardandoComo(ti1.text)
+                        raiz.visible = false
+                    }
                 }
             }
             Row{
