@@ -207,7 +207,7 @@ ApplicationWindow {
                     h: w
                     t: "\uf011"
                     onClicking: {
-                        Qt.quit()
+                        app.close()
                     }
                 }
             }
@@ -265,7 +265,7 @@ ApplicationWindow {
                         logView.log('Running: '+appPath+' '+cl)
                         unik.run(appPath+' '+cl, true)
                     }
-                }
+                }                
                 settings.javascriptCanOpenWindows: true
                 settings.allowRunningInsecureContent: false
                 //settings.hyperlinkAuditingEnabled:  true
@@ -295,6 +295,20 @@ ApplicationWindow {
                     contextMenu.x = request.x;
                     contextMenu.y = request.y;
                     contextMenu.visible = true
+                }
+                property int previsibility: 1
+                onFullScreenRequested: {
+                    if(request.toggleOn){
+                        wv.previsibility=app.visibility
+                        app.visibility = "FullScreen"
+                        wv.state = "FullScreen"
+                        xTools.width=0
+                    }else{
+                        app.visibility = wv.previsibility
+                        wv.state = ""
+                        xTools.width=app.width*0.02
+                    }
+                    request.accept()
                 }
                 onUrlChanged: {
                     logView.log("Url: "+url)
