@@ -7,9 +7,11 @@ Item {
     property alias t: txt.text
     property alias c: txt.color
     property alias b: rect.color
+    property bool p: false
     width: w
     height: h
     signal clicking
+    signal dobleclicking
     Rectangle{
         id: rect
         width:  raiz.width
@@ -37,11 +39,26 @@ Item {
             font.family: "FontAwesome"
         }
         MouseArea{
+            id:ma
+            property bool pre: false
             anchors.fill: parent
             onClicked: {
+                ma.pre=false
                 an.start()
                 clicking()
             }
+            onPressed: {ma.pre=true;tp.start()}
+            onReleased: {ma.pre=false;tp.stop()}
+            Timer{
+                id: tp
+                running: false
+                repeat: false
+                interval: 1500
+                onTriggered: {
+                        raiz.p = !raiz.p
+                }
+            }
+
         }
 
     }

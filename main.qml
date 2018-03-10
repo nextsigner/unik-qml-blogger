@@ -206,9 +206,8 @@ ApplicationWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     h: w
                     t: "\uf011"
-                    onClicking: {
-                        app.close()
-                    }
+                    onClicking:Qt.quit()
+                    onPChanged: app.close()
                 }
             }
         }
