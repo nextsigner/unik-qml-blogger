@@ -798,9 +798,10 @@ ApplicationWindow {
         id:tu
         running: true
         repeat: true
-        //interval: 1000*60*60
-        interval: 1000*3
+        interval: 1000*60*60
         onTriggered: {
+            unik.log('Checking unik-qml-blogger updates from https://github.com/nextsigner/unik-qml-blogger...')
+            unik.setDebugLog(false)
             var d = new Date(Date.now())
             var ur0 = ''+unik.getHttpFile('https://github.com/nextsigner/unik-qml-blogger/commits/master?r='+d.getTime())
             var m0=ur0.split("commit-title")
@@ -822,6 +823,7 @@ ApplicationWindow {
             }else{
                 appSettings.uRS=ur
             }
+            unik.setDebugLog(true)
         }
     }
     Component.onCompleted:  {
