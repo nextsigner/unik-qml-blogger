@@ -67,9 +67,10 @@ ApplicationWindow {
             border.color: "white"
             Column{
                 id: colTools
-                width: parent.width
+                width: parent.width*0.9
                 spacing:  width*0.5
                 anchors.verticalCenter: parent.verticalCenter
+                anchors.horizontalCenter: parent.horizontalCenter
 
 
                 Boton{
@@ -200,6 +201,8 @@ ApplicationWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     h: w
                     t: "\uf07b"
+                    b: app.tool === "currentFolder"?app.c2:app.c5
+                    c: app.tool === "currentFolder"?app.c5:app.c1
                     onClicking: {
                         app.tool = app.tool === "currentFolder" ? "" : "currentFolder"
                     }
@@ -220,8 +223,8 @@ ApplicationWindow {
                     w:parent.width
                     h: w
                     t: '\uf021'
-                    b: up ? 'red':app.c1
-                    c: up ? 'white':'#000'
+                    b: up ? 'red':app.c5
+                    c: up ? 'white':app.c1
                     property bool up: false
                     onClicking: {
                         if(!up){
@@ -233,11 +236,13 @@ ApplicationWindow {
                         }
                     }
                 }
-                Boton{
+                Boton{//Quit
                     w:parent.width*0.9
                     anchors.horizontalCenter: parent.horizontalCenter
                     h: w
                     t: "\uf011"
+                    b: app.c5
+                    c: app.c1
                     onClicking:Qt.quit()
                     onPChanged: app.close()
                 }
