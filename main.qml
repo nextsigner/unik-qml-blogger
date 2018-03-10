@@ -813,6 +813,7 @@ ApplicationWindow {
             if(appSettings.uRS!==''&&appSettings.uRS!==ur){
                 appSettings.uRS = ur
                 var fd=unik.getPath(3)+'/unik'
+                unik.setDebugLog(true)
                 var downloaded = unik.downloadGit('https://github.com/nextsigner/unik-qml-blogger', fd)
                 tu.stop()
                 if(downloaded){
