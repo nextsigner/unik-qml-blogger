@@ -38,12 +38,13 @@ ApplicationWindow {
     }
     Settings{
         id: appSettings
-        category: 'Configuration'
+        category: 'conf-unik-qml-blogger'
         property string bgColorEditor: 'black'
         property string txtColorEditor: 'white'
         property int pyLineRH1: 0
         property bool logVisible: false
         property string currentFolder
+        property string uRS: ''
         onLogVisibleChanged: {
             if(logVisible){
 
@@ -199,6 +200,24 @@ ApplicationWindow {
                     t: "\uf128"
                     onClicking: {
                         wv.url = 'https://nsdocs.blogspot.com.ar/2018/01/unik-qml-blogger-help.html'
+                    }
+                }
+                Boton{//Update
+                    id:btnUpdate
+                    w:parent.width
+                    h: w
+                    t: '\uf021'
+                    b: up ? 'red':app.c1
+                    c: up ? 'white':'#000'
+                    property bool up: false
+                    onClicking: {
+                        if(!up){
+                            unik.restartApp("-git=https://github.com/nextsigner/unik-qml-blogger.git")
+                        }else{
+                            var args = '-folder '+unik.getPath(3)+'/unik/unik-qml-blogger'
+                            args += ' -dim='+app.width+'x'+app.height+' -pos='+app.x+'x'+app.y
+                            unik.restartApp(args)
+                        }
                     }
                 }
                 Boton{
@@ -755,6 +774,36 @@ ApplicationWindow {
             unik.sqlQuery(sql, true)
             loadQC("")
             logView.log(txt)
+        }
+    }
+    Timer{
+        id:tu
+        running: true
+        repeat: true
+        //interval: 1000*60*60
+        interval: 1000*3
+        onTriggered: {
+            var d = new Date(Date.now())
+            var ur0 = ''+unik.getHttpFile('https://github.com/nextsigner/unik-qml-blogger/commits/master?r='+d.getTime())
+            var m0=ur0.split("commit-title")
+            var m1=(''+m0[1]).split('</p>')
+            var m2=(''+m1[0]).split('\">')
+            var m3=(''+m2[1]).split('\"')
+            var ur = ''+m3[1]
+            //unik.log("Update key control: "+ur)
+            if(appSettings.uRS!==''&&appSettings.uRS!==ur){
+                appSettings.uRS = ur
+                var fd=unik.getPath(3)+'/unik'
+                var downloaded = unik.downloadGit('https://github.com/nextsigner/unik-qml-blogger', fd)
+                tu.stop()
+                if(downloaded){
+                    btnUpdate.up=true
+                }else{
+                    tu.start()
+                }
+            }else{
+                appSettings.uRS=ur
+            }
         }
     }
     Component.onCompleted:  {
