@@ -7,7 +7,11 @@ Item {
     property alias t: txt.text
     property alias c: txt.color
     property alias b: rect.color
+    property alias f: txt.font.family
+    property alias r: rect.radius
+
     property bool p: false
+
     width: w
     height: h
     signal clicking
@@ -17,7 +21,7 @@ Item {
         width:  raiz.width
         height: width
         anchors.centerIn: raiz
-        radius: raiz.h*0.05
+        radius: raiz.h*0.2
         border.width: 1
         border.color: txt.color
         ParallelAnimation{

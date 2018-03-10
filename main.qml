@@ -78,8 +78,10 @@ ApplicationWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     h: w
                     t: "\uf04b"
-                    enabled: (''+wv.url).indexOf('blogger.com') !== -1
-                    opacity: enabled ? 1.0 : 0.5
+                    b: app.c5
+                    c: app.c1
+                    visible: (''+wv.url).indexOf('blogger.com') !== -1
+
                     onClicking: {
                         if(app.urlEditor==='https://www.blogger.com/'){
                             compilar()
@@ -108,6 +110,8 @@ ApplicationWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     h: w
                     t: '\uf015'
+                    b: (''+wv.url).indexOf('https://blogger.com')==0?app.c2:app.c5
+                    c: (''+wv.url).indexOf('https://blogger.com')===0?app.c5:app.c1
                     onClicking: {
                         wv.url = 'https://blogger.com'
 
@@ -119,6 +123,8 @@ ApplicationWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     h: w
                     t: "\uf002"
+                    b: app.tool === "search"?app.c2:app.c5
+                    c: app.tool === "search"?app.c5:app.c1
                     onClicking: {
                         app.tool = app.tool === "search" ? "" : "search"
                     }
@@ -130,6 +136,8 @@ ApplicationWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     h: w
                     t: '\uf1ea'
+                    b: (''+wv.url).indexOf(btnBlog.url.toString())!==-1?app.c2:app.c5
+                    c: (''+wv.url).indexOf(btnBlog.url.toString())!==-1?app.c5:app.c1
                     onClicking: {
                         wv.url = btnBlog.url
                     }
@@ -169,7 +177,8 @@ ApplicationWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     h: w
                     t: "\uf188"
-                    opacity: appSettings.logVisible ? 1.0 : 0.5
+                    b: logView.visible?app.c2:app.c5
+                    c: logView.visible?app.c5:app.c1
                     onClicking: {
                         appSettings.logVisible =  !appSettings.logVisible
                     }
@@ -179,6 +188,8 @@ ApplicationWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     h: w
                     t: "\uf121"
+                    b: app.tool === "quickcode"?app.c2:app.c5
+                    c: app.tool === "quickcode"?app.c5:app.c1
                     onClicking: {
                         app.tool = app.tool === "quickcode" ? "" : "quickcode"
                     }
@@ -198,6 +209,8 @@ ApplicationWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     h: w
                     t: "\uf128"
+                    b: (''+wv.url).indexOf('unik-qml-blogger-help')!==-1?app.c2:app.c5
+                    c: (''+wv.url).indexOf('unik-qml-blogger-help')!==-1?app.c5:app.c1
                     onClicking: {
                         wv.url = 'https://nsdocs.blogspot.com.ar/2018/01/unik-qml-blogger-help.html'
                     }
