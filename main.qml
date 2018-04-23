@@ -41,10 +41,11 @@ ApplicationWindow {
         category: 'conf-unik-qml-blogger'
         property string bgColorEditor: 'black'
         property string txtColorEditor: 'white'
-        property int pyLineRH1: 0
+        //property int pyLineRH1: 0
         property bool logVisible: false
         property string currentFolder
         property string uRS: ''
+        property int lvfs
         onLogVisibleChanged: {
             if(logVisible){
 
@@ -52,10 +53,6 @@ ApplicationWindow {
         }
     }
     FontLoader {name: "FontAwesome";source: "qrc:/fontawesome-webfont.ttf";}
-    UK{id:uk}
-    Connections {target: unik;onUkStdChanged: logView.log(unik.ukStd);}
-    Connections {target: unik;onStdErrChanged: logView.log(unik.getStdErr());}
-
     Row{
         anchors.fill: parent
         Rectangle{
@@ -178,10 +175,12 @@ ApplicationWindow {
                     anchors.horizontalCenter: parent.horizontalCenter
                     h: w
                     t: "\uf188"
-                    b: logView.visible?app.c2:app.c5
-                    c: logView.visible?app.c5:app.c1
+                    b: appSettings.logVisible?app.c2:app.c5
+                    c: appSettings.logVisible?app.c5:app.c1
                     onClicking: {
-                        appSettings.logVisible =  !appSettings.logVisible
+                        //appSettings.logVisible =  !appSettings.logVisible
+                        appSettings.logVisible = !appSettings.logVisible
+                        unik.setProperty("logViewVisible", appSettings.logVisible)
                     }
                 }
                 Boton{
@@ -257,7 +256,7 @@ ApplicationWindow {
             WebEngineView{
                 id: wv
                 width: parent.width-xTools.width
-                height: lineRH.y                
+                height: parent.height
                 url: app.urlEditor
                 profile: defaultProfile
                 focus: true
@@ -347,7 +346,7 @@ ApplicationWindow {
                     request.accept()
                 }
                 onUrlChanged: {
-                    logView.log("Url: "+url)
+                    console.log("Url: "+url)
                 }
 
                 Shortcut {
@@ -368,14 +367,7 @@ ApplicationWindow {
 
 
             }
-            LineResizeH{id:lineRH; y:visible?appSettings.pyLineRH1: parent.height;onLineReleased: appSettings.pyLineRH1 = y; visible: appSettings.logVisible;/*onYChanged: wv.height = !lineRH.visible ? wv.parent.height-(wv.parent.height-lineRH.y) : wv.parent.height*/}
-            LogView{
-                id:logView;
-                width: wv.width
-                anchors.top: lineRH.bottom;
-                anchors.bottom: parent.bottom;
-                visible: appSettings.logVisible;
-            }
+
             Menu {
                 id: contextMenu
                 onVisibleChanged: {
@@ -828,10 +820,7 @@ ApplicationWindow {
         }
     }
     Component.onCompleted:  {
-        unik.debugLog = true
-        if(lineRH.y===0){
-            appSettings.pyLineRH1 = app.height*0.7
-        }
+        unik.debugLog = true       
         if(appSettings.currentFolder===undefined||appSettings.currentFolder===''){
             var cf = ''+unikDocs+'/unik-qml-blogger'
             tiCurrentFolder.text = cf
@@ -875,7 +864,7 @@ ApplicationWindow {
     }
     function setColorTextEditor(){
         wv.runJavaScript('document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'p\').length', function(result) {
-            //logView.log("Cantindad de lineas: "+result)
+
             var js=''
             for(var i=0;i<result;i++){
                 js += 'document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'p\')['+i+'].style.color="'+txtcEditor+'";'
