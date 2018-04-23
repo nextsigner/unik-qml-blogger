@@ -11,7 +11,6 @@ import QtQuick 2.7
 import QtQuick.Controls 2.0
 import Qt.labs.settings 1.0
 import QtWebEngine 1.4
-import uk 1.0
 ApplicationWindow {
     id:app
     visible: true
@@ -85,7 +84,7 @@ ApplicationWindow {
                             compilar()
                         }else{
                             wv.runJavaScript('chooseExport(\'txt\', \'Download text file\'); exportDoc();', function(result) {
-                                logView.log(result);
+                                console.log(result);
 
                             })
                         }
@@ -266,15 +265,15 @@ ApplicationWindow {
                     onDownloadRequested: {
                         download.path=unik.getPath(2)+'/main.qml'
                         download.accept();
-                        logView.log(download.path)
+                        console.log(download.path)
                     }
                     onDownloadFinished: {
                         var d=''+unik.getFile(unik.getPath(2)+'/main.qml', true)
-                        logView.log('--------->'+d)
+                        console.log('--------->'+d)
                         var m0=d.split('\n')
                         var l1 = ''+m0[0]
                         var fileName = l1.substring(2,l1.length)
-                        logView.log('Saving: '+fileName)
+                        console.log('Saving: '+fileName)
                         var m1 = fileName.split('/')
 
                         var folder = fileName.replace('/'+m1[m1.length-1], '')
@@ -297,7 +296,7 @@ ApplicationWindow {
                         //unik.setFile('H:/cl.txt', appPath+' '+cl,true)
                         //unik.setFile('/home/nextsigner/Escritorio/fn.txt', fileName,true)
                         //unik.setFile('/home/nextsigner/Escritorio/cl.txt', appPath+' '+cl,true)
-                        logView.log('Running: '+appPath+' '+cl)
+                        console.log('Running: '+appPath+' '+cl)
                         unik.run(appPath+' '+cl, true)
                     }
                 }                
@@ -320,7 +319,7 @@ ApplicationWindow {
                     }
                 }
                 onContextMenuRequested: function(request) {
-                    logView.log('---------->'+request.linkUrl)
+                    console.log('---------->'+request.linkUrl)
                     var lurl = ''+request.linkUrl
                     if(lurl!==''){
                         wv.linkContextRequested = lurl
@@ -392,7 +391,7 @@ ApplicationWindow {
                         //wv.triggerWebAction(WebEngineView.Copy)
                         var js='\'\'+window.getSelection()'
                         wv.runJavaScript(js, function(result) {
-                            logView.log(result)
+                            console.log(result)
                             compilarCS(result, 1)
                         });
                     }
@@ -405,7 +404,7 @@ ApplicationWindow {
                         //wv.triggerWebAction(WebEngineView.Copy)
                         var js='\'\'+window.getSelection()'
                         wv.runJavaScript(js, function(result) {
-                            logView.log(result)
+                            console.log(result)
                             compilarCS(result, 2)
                         });
                     }
@@ -418,7 +417,7 @@ ApplicationWindow {
                         //wv.triggerWebAction(WebEngineView.Copy)
                         var js='\'\'+window.getSelection()'
                         wv.runJavaScript(js, function(result) {
-                            logView.log(result)
+                            console.log(result)
                             compilarCS(result, 3)
                         });
                     }
@@ -449,10 +448,10 @@ ApplicationWindow {
                         wv.triggerWebAction(WebEngineView.Copy)
                         var js='\'\'+window.getSelection()'
                         wv.runJavaScript(js, function(result) {
-                            logView.log(result);
+                            console.log(result);
                         });
 
-                        //logView.log(wv.ViewSource.toString())
+                        //console.log(wv.ViewSource.toString())
                     }
                 }
                 MenuItem {
@@ -783,7 +782,7 @@ ApplicationWindow {
             var  sql = 'INSERT INTO quickcodes(id, nom, qc)VALUES(NULL, \''+n+'\', \''+txt+'\')'
             unik.sqlQuery(sql, true)
             loadQC("")
-            logView.log(txt)
+            console.log(txt)
         }
     }
     Timer{
@@ -870,7 +869,7 @@ ApplicationWindow {
                 js += 'document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'p\')['+i+'].style.color="'+txtcEditor+'";'
             }
             wv.runJavaScript(js, function(result2) {
-                //logView.log("Result Styles Paragraph: "+result2)
+                //console.log("Result Styles Paragraph: "+result2)
 
             })
 
@@ -883,33 +882,33 @@ ApplicationWindow {
                 js += 'setColorDiv(document.getElementsByTagName(\'div\')['+i+']);'
             }
             wv.runJavaScript(js, function(result2) {
-                //logView.log("Result Styles Divs: "+result2)
+                //console.log("Result Styles Divs: "+result2)
             })
 
         })
     }
     function setColorSpans(){
         wv.runJavaScript('document.getElementsByTagName(\'span\').length', function(result) {
-            //logView.log("Cantindad de lineas: "+result)
+            //console.log("Cantindad de lineas: "+result)
             var js='function setColorDiv(d){if(d.className!==\'blogg-menu-button-content\'&&d.className!==\'OAVLIQC-A-a\'&&d.className!==\'blogg-disclosureindicator\'){d.style.backgroundColor="#333333";d.style.color="#fff";}};'
             for(var i=0;i<result;i++){
                 js += 'setColorDiv(document.getElementsByTagName(\'span\')['+i+']);'
             }
             wv.runJavaScript(js, function(result2) {
-                //logView.log("Result Styles Divs: "+result2)
+                //console.log("Result Styles Divs: "+result2)
             })
 
         })
     }
     function setColorLinks(){
         wv.runJavaScript('document.getElementsByTagName(\'a\').length', function(result) {
-            //logView.log("Cantindad de lineas: "+result)
+            //console.log("Cantindad de lineas: "+result)
             var js='function setColorDiv(d){if(d.className!==\'blogg-menu-button-content\'&&d.className!==\'OAVLIQC-A-a\'){d.style.backgroundColor="#333333";d.style.color="#fff";}};'
             for(var i=0;i<result;i++){
                 js += 'setColorDiv(document.getElementsByTagName(\'a\')['+i+']);'
             }
             wv.runJavaScript(js, function(result2) {
-                //logView.log("Result Styles Divs: "+result2)
+                //console.log("Result Styles Divs: "+result2)
             })
 
         })
@@ -932,7 +931,7 @@ ApplicationWindow {
             js += 'document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'body\')[0].style.color="'+txtColorTextAreaEditor+'";'
         }
         wv.runJavaScript(js, function(result) {
-            //logView.log("Result Style: "+result)
+            //console.log("Result Style: "+result)
 
         })
 
@@ -951,10 +950,10 @@ ApplicationWindow {
         }
     }
     function compilarCS(res, modo){
-        logView.log('Compilando código seleccionado...')
+        console.log('Compilando código seleccionado...')
         var js = ''
         var d=''+res;
-        logView.log('Còdigo: '+d)
+        console.log('Còdigo: '+d)
 
         var r = new Date(Date.now())
         var fileName
@@ -963,7 +962,7 @@ ApplicationWindow {
         var cl
         if(modo===1){
             fileName = ''+unik.getPath(2)+'/'+r.getTime()+'/main.qml'
-            logView.log('Saving: '+fileName)
+            console.log('Saving: '+fileName)
             m1 = fileName.split('/')
             folder = fileName.replace('/'+m1[m1.length-1], '')
             unik.mkdir(folder)
@@ -981,7 +980,7 @@ ApplicationWindow {
                 }
             }
             fileName = tiCurrentFolder.text+'/'+l1.substring(2,l1.length)
-            logView.log('Saving with filename: ['+fileName+']')
+            console.log('Saving with filename: ['+fileName+']')
             m1 = fileName.split('/')
             folder = fileName.replace('/'+m1[m1.length-1], '')
             var l2 = ''+m0[1]
@@ -989,15 +988,15 @@ ApplicationWindow {
             unik.mkdir(folder)
             unik.setFile(fileName,d,true)
             if(!unik.fileExist(fileName)){
-                logView.log('Error! Not found a filename valid location or name: ['+fileName+']')
-                logView.log('Compilation ir aborted.')
+                console.log('Error! Not found a filename valid location or name: ['+fileName+']')
+                console.log('Compilation ir aborted.')
                 return
             }
             cl = '-folder '+folder+' -debug'
         }
         if(modo===3){
             fileName = ''+unik.getPath(2)+'/'+r.getTime()+'/main.qml'
-            logView.log('Saving: '+fileName)
+            console.log('Saving: '+fileName)
             m1 = fileName.split('/')
             folder = fileName.replace('/'+m1[m1.length-1], '')
             unik.mkdir(folder)
@@ -1033,7 +1032,7 @@ ApplicationWindow {
             fullcode +='    }\n'
             fullcode +='}\n'
             unik.setFile(fileName,fullcode,true)
-            logView.log('Full code: '+fullcode)
+            console.log('Full code: '+fullcode)
             cl = '-folder '+folder+' -debug'
         }
         var appPath
@@ -1046,7 +1045,7 @@ ApplicationWindow {
         if(Qt.platform.os==='linux'){
             appPath = '"'+appExec+'"'
         }
-        logView.log('Running: '+appPath+' '+cl)
+        console.log('Running: '+appPath+' '+cl)
         if(unik.fileExist(fileName)){
             unik.run(appPath+' '+cl, true)
         }else{
@@ -1054,13 +1053,13 @@ ApplicationWindow {
         }
     }
     function compilar(){
-        logView.log('Compilando...')
+        console.log('Compilando...')
         var js = ''
         js += 'document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'body\')[0].innerHTML;'
         wv.runJavaScript(js, function(result) {
             var tagPre1 = '<'+'/pre>\n'
             var c1 = ''+result+'<br />'
-            logView.log('QML Trim: '+c1.replace(/<(?:.|\n)*?>/gm, ''))
+            console.log('QML Trim: '+c1.replace(/<(?:.|\n)*?>/gm, ''))
             var c2 = c1.replace(/<[\/p]>/g, '')//encuentra inicio parrafo
             var c3 = c2.replace(/<\/[p]>/g, '\n')//encuentra fin parrafo
             var c4 = c3.replace(/<\/(pre)>/g, tagPre1)
@@ -1070,7 +1069,7 @@ ApplicationWindow {
             var c8 = c7.replace(/<(?:.|\n)*?>/gm, '')
             var c9 = c8.replace("p, li { white-space: pre-wrap; }", '')
             app.wvResult = c9
-            logView.log('QML: '+app.wvResult)
+            console.log('QML: '+app.wvResult)
             var m0=c9.split('\n')
             var l1 = ''
             for(var i=0;i<m0.length;i++){
@@ -1083,7 +1082,7 @@ ApplicationWindow {
 
             var fileName = tiCurrentFolder.text+'/'+l1.substring(2,l1.length)
 
-            logView.log('Saving with filename: ['+fileName+']')
+            console.log('Saving with filename: ['+fileName+']')
             var m1 = fileName.split('/')
 
             var folder = fileName.replace('/'+m1[m1.length-1], '')
@@ -1091,8 +1090,8 @@ ApplicationWindow {
             unik.mkdir(folder)
             unik.setFile(fileName,app.wvResult,true)
             if(!unik.fileExist(fileName)){
-                logView.log('Error! Not found a filename valid location or name: ['+fileName+']')
-                logView.log('Compilation ir aborted.')
+                console.log('Error! Not found a filename valid location or name: ['+fileName+']')
+                console.log('Compilation ir aborted.')
                 return
             }
             var cl = '-folder '+folder+' -debug'
@@ -1106,7 +1105,7 @@ ApplicationWindow {
             if(Qt.platform.os==='linux'){
                 appPath = '"'+appExec+'"'
             }            
-            logView.log('Running: '+appPath+' '+cl)
+            console.log('Running: '+appPath+' '+cl)
             if(unik.fileExist(fileName)){
                 unik.run(appPath+' '+cl)
             }else{
