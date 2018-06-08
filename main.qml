@@ -883,14 +883,12 @@ ApplicationWindow {
         if(Qt.platform.os==='windows'){
             ad = ''+unik.getPath(6)+'/unik-qml-blogger.lnk'
             if(!unik.fileExist(ad)){
-                exec = ''+unik.getPath(1)+'/unik.exe -folder '+sourcePath
-                console.log('Windows desktop shortcut not configured: '+exec)
-                //console.log('Unik Qml Blogger Exec Path: '+exec)
-                //unik.createLink(exec, ad, 'unik-qml-blogger', 'This is a desktop file created by main.qml blogger!')
+                exec = ''+unik.getPath(1)+'/unik.exe'
+                var arguments = ' -folder '+sourcePath
+                var c = unik.createLink(exec, arguments, ad, 'This is a desktop file created by main.qml blogger!', 'E:/')
             }
         }
         console.log('Unik Qml Blogger LNK file location: '+ad)
-
     }
     function setColorTextEditor(){
         wv.runJavaScript('document.getElementById("postingComposeBox").contentDocument.getElementsByTagName(\'p\').length', function(result) {
