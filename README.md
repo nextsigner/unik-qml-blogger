@@ -57,4 +57,6 @@ Set ../Documents/unik/config.json with this content:
 Use your folder location.
 
 More info in nextsigner youtube channel https://youtube.com/c/nextsigner
-
+Whatsapps: +54 11 3802 4370
+E-Mail: nextsigner@gmail.com
+Twitter: @nextsigner
