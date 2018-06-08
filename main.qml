@@ -11,6 +11,7 @@ import QtQuick 2.7
 import QtQuick.Controls 2.0
 import Qt.labs.settings 1.0
 import QtWebEngine 1.4
+import LogView 1.0
 ApplicationWindow {
     id:app
     visible: true
@@ -26,7 +27,7 @@ ApplicationWindow {
     property color c4: "black"
     property color c5: "#333333"
     property string tool: ""
-    property string urlEditor: 'http://nsdocs.blogspot.com.ar/search?q=qml+unik'
+    property string urlEditor: 'http://unikode.org/search?q=qml+unik'
     property var wvResult
     onToolChanged: {
         if(app.tool === "quickcode"){
@@ -40,16 +41,11 @@ ApplicationWindow {
         category: 'conf-unik-qml-blogger'
         property string bgColorEditor: 'black'
         property string txtColorEditor: 'white'
-        //property int pyLineRH1: 0
+        property int pyLineRH1
         property bool logVisible: false
         property string currentFolder
         property string uRS: ''
         property int lvfs
-        onLogVisibleChanged: {
-            if(logVisible){
-
-            }
-        }
     }
     FontLoader {name: "FontAwesome";source: "qrc:/fontawesome-webfont.ttf";}
     Row{
@@ -59,8 +55,8 @@ ApplicationWindow {
             width: app.width*0.02
             height: app.height
             color: "#000"
-            border.width: 1
-            border.color: "white"
+            //border.width: 1
+            //border.color: "white"
             Column{
                 id: colTools
                 width: parent.width*0.9
@@ -213,7 +209,7 @@ ApplicationWindow {
                     b: (''+wv.url).indexOf('unik-qml-blogger-help')!==-1?app.c2:app.c5
                     c: (''+wv.url).indexOf('unik-qml-blogger-help')!==-1?app.c5:app.c1
                     onClicking: {
-                        wv.url = 'https://nsdocs.blogspot.com.ar/2018/01/unik-qml-blogger-help.html'
+                        wv.url = 'https://unikode.org/2018/01/unik-qml-blogger-help.html'
                     }
                 }
                 Boton{//Update
@@ -249,12 +245,12 @@ ApplicationWindow {
 
         Rectangle{
             id:container
-            width: parent.width
+            width: parent.width-xTools.width
             height: parent.height
             color: '#333'
             WebEngineView{
                 id: wv
-                width: parent.width-xTools.width
+                width: parent.width
                 height: parent.height
                 url: app.urlEditor
                 profile: defaultProfile
@@ -299,7 +295,7 @@ ApplicationWindow {
                         console.log('Running: '+appPath+' '+cl)
                         unik.run(appPath+' '+cl, true)
                     }
-                }                
+                }
                 settings.javascriptCanOpenWindows: true
                 settings.allowRunningInsecureContent: false
                 //settings.hyperlinkAuditingEnabled:  true
@@ -319,7 +315,7 @@ ApplicationWindow {
                     }
                 }
                 onContextMenuRequested: function(request) {
-                    console.log('---------->'+request.linkUrl)
+                    //console.log('---------->'+request.linkUrl)
                     var lurl = ''+request.linkUrl
                     if(lurl!==''){
                         wv.linkContextRequested = lurl
@@ -462,6 +458,16 @@ ApplicationWindow {
                     }
                 }
             }
+            LogView{
+                id:logView
+                height: appSettings.pyLineRH1
+                width: parent.width
+                topHandlerHeight:4
+                anchors.bottom: parent.bottom
+                anchors.right: parent.right
+                visible: appSettings.logVisible
+                onHeightChanged: appSettings.pyLineRH1=height
+            }
         }
 
     }
@@ -550,7 +556,7 @@ ApplicationWindow {
             color: text==='search' ? '#ccc' : 'white'
             text: 'search'
             Keys.onReturnPressed: {
-                 wv.url = 'http://nsdocs.blogspot.com.ar/search?q='+text.replace(/ /g,'+')
+                wv.url = 'http://unikode.org/search?q='+text.replace(/ /g,'+')
             }
             onFocusChanged: {
                 if(text==='search'){
@@ -818,28 +824,6 @@ ApplicationWindow {
             unik.setDebugLog(true)
         }
     }
-    Component.onCompleted:  {
-        unik.debugLog = true       
-        if(appSettings.currentFolder===undefined||appSettings.currentFolder===''){
-            var cf = ''+unikDocs+'/unik-qml-blogger'
-            tiCurrentFolder.text = cf
-        }else{
-            tiCurrentFolder.text = appSettings.currentFolder
-        }
-
-        var sf = ((''+appsDir).replace('file:///', ''))+'/'+app.title+'.sqlite'
-        var initSqlite = unik.sqliteInit(sf, true)
-        var sql
-
-        //Tabla quickcodes
-        sql = 'CREATE TABLE IF NOT EXISTS quickcodes(
-                       id INTEGER PRIMARY KEY AUTOINCREMENT,
-                       nom TEXT,
-                       qc NUMERIC
-                        )'
-        unik.sqlQuery(sql, true)
-        loadQC("")
-    }
     Timer{
         id: ts
         running: true
@@ -859,6 +843,53 @@ ApplicationWindow {
             }
             setMenuCS()
         }
+
+    }
+    Component.onCompleted:  {
+        unik.debugLog = true
+        if(appSettings.pyLineRH1===0||appSettings.pyLineRH1===undefined){
+            appSettings.pyLineRH1 = 100
+        }
+        if(appSettings.currentFolder===undefined||appSettings.currentFolder===''){
+            var cf = ''+unikDocs+'/unik-qml-blogger'
+            tiCurrentFolder.text = cf
+        }else{
+            tiCurrentFolder.text = appSettings.currentFolder
+        }
+        var sf = ((''+appsDir).replace('file:///', ''))+'/'+app.title+'.sqlite'
+        var initSqlite = unik.sqliteInit(sf, true)
+        var sql
+
+        //Tabla quickcodes
+        sql = 'CREATE TABLE IF NOT EXISTS quickcodes(
+                       id INTEGER PRIMARY KEY AUTOINCREMENT,
+                       nom TEXT,
+                       qc NUMERIC
+                        )'
+        unik.sqlQuery(sql, true)
+        loadQC("")
+
+        //Creating Desktop LNK
+        var exec
+        var ad = ''
+        if(Qt.platform.os==='linux'){
+            ad = ''+unik.getPath(6)+'/unik-qml-blogger.desktop'
+            if(!unik.fileExist(ad)){
+                exec = ''+unik.getPath(1)+'/unik -folder '+sourcePath
+                console.log('Unik Qml Blogger Exec Path: '+exec)
+                unik.createLink(exec, ad, 'unik-qml-blogger', 'This is a desktop file created by main.qml blogger!')
+            }
+        }
+        if(Qt.platform.os==='windows'){
+            ad = ''+unik.getPath(6)+'/unik-qml-blogger.lnk'
+            if(!unik.fileExist(ad)){
+                exec = ''+unik.getPath(1)+'/unik.exe -folder '+sourcePath
+                console.log('Windows desktop shortcut not configured: '+exec)
+                //console.log('Unik Qml Blogger Exec Path: '+exec)
+                //unik.createLink(exec, ad, 'unik-qml-blogger', 'This is a desktop file created by main.qml blogger!')
+            }
+        }
+        console.log('Unik Qml Blogger LNK file location: '+ad)
 
     }
     function setColorTextEditor(){
@@ -1086,7 +1117,7 @@ ApplicationWindow {
             var m1 = fileName.split('/')
 
             var folder = fileName.replace('/'+m1[m1.length-1], '')
-            var l2 = ''+m0[1]            
+            var l2 = ''+m0[1]
             unik.mkdir(folder)
             unik.setFile(fileName,app.wvResult,true)
             if(!unik.fileExist(fileName)){
@@ -1104,7 +1135,7 @@ ApplicationWindow {
             }
             if(Qt.platform.os==='linux'){
                 appPath = '"'+appExec+'"'
-            }            
+            }
             console.log('Running: '+appPath+' '+cl)
             if(unik.fileExist(fileName)){
                 unik.run(appPath+' '+cl)
