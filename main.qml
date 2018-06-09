@@ -466,7 +466,12 @@ ApplicationWindow {
                 anchors.bottom: parent.bottom
                 anchors.right: parent.right
                 visible: appSettings.logVisible
-                onHeightChanged: appSettings.pyLineRH1=height
+                onHeightChanged: {
+                    appSettings.pyLineRH1=height
+                    if(logView.height>logView.parent.height-logView.topHandlerHeight){
+                        appSettings.pyLineRH1 = appSettings.pyLineRH1
+                    }
+                }
             }
         }
 
@@ -850,6 +855,7 @@ ApplicationWindow {
         if(appSettings.pyLineRH1===0||appSettings.pyLineRH1===undefined){
             appSettings.pyLineRH1 = 100
         }
+
         if(appSettings.currentFolder===undefined||appSettings.currentFolder===''){
             var cf = ''+unikDocs+'/unik-qml-blogger'
             tiCurrentFolder.text = cf
